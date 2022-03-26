@@ -3,12 +3,15 @@ import os
 from dotenv import load_dotenv
 
 def setup():
-    load_dotenv()
-
-    authenticated_github_instance = Github(os.environ.get('GITHUB_ACCESS_TOKEN'))
+    authenticated_github_instance = Github(pull_access_token())
 
     # print(f'Your github token in .env reads: {os.environ.get("GITHUB_ACCESS_TOKEN")}')
     return authenticated_github_instance
+
+def pull_access_token():
+    load_dotenv()
+
+    return os.environ.get('GITHUB_ACCESS_TOKEN')
 
 
 
