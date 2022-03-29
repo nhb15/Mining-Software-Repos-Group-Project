@@ -1,39 +1,45 @@
-import github.Repository
-
-import pyGithubClient
+import auth
 import requests
-
-github_client = pyGithubClient.setup()
-
-# for issue in github.Repository.Repository.get_issues():
-#     print(issue)
-
-
-# plotly_repo = github_client.get_repo('plotly/plotly')
-#
-# paginated_issues = plotly_repo.get_issues(state="all").get_page(1)
-# '''
-# Stage 1: First page of issues for Plotly
-# '''
-# for head_level_issue in paginated_issues:
-#     full_issue = plotly_repo.get_issue(head_level_issue.number)
-#     print(full_issue)
-#
-# print(f'Default length of page: {len(paginated_issues)}')
-
-
-'''
-Stage 2: All commits for Plotly
-'''
-
-# repo = github_client.get_repo("plotly/plotly")
-#
-# for repo in repo.get_issues(state="all", page=2, per_page=15):
-#     print(repo)
+import json
 
 owner = "plotly"
 repoName = "plotly"
-r = requests.get(f'https://api.github.com/repos/{owner}/{repoName}/issues', headers={'Authorization' : pyGithubClient.pull_access_token()})
-print(r)
-if r.status_code == 200:
-    print(r.text)
+
+'''
+Stage 1: First page of issues for Plotly
+'''
+response_stage1 = requests.get(f'https://api.github.com/repos/{owner}/{repoName}/issues?page=1&per_page=100&state=all', auth=('nhb15', auth.pull_access_token()))
+print(response_stage1)
+if response_stage1.status_code == 200:
+    body = json.loads(response_stage1.content)
+
+    for index, issue in enumerate(body):
+        print(index)
+        # print(issue['number'])
+
+'''
+Stage 2: A page of commits for Plotly
+'''
+response_stage2 = requests.get(f'https://api.github.com/repos/{owner}/{repoName}/commits?page=1&per_page=100',  auth=('nhb15', auth.pull_access_token()))
+
+commit_url_list = []
+if response_stage2.status_code == 200:
+    body = json.loads(response_stage2.content)
+
+    for index, commit in enumerate(body):
+        print(index)
+        commit_url_list.append(commit['url'])
+print(commit_url_list)
+'''
+Stage 3: Code Size for Plotly
+'''
+# sample commit
+for commit_url in commit_url_list[0:2]:
+    response_stage3 = requests.get(f'https://api.github.com/repos/{owner}/{repoName}/git/trees/{commit_url}?recursive=true',  auth=('nhb15', auth.pull_access_token()))
+    print(response_stage3)
+    if response_stage3.status_code == 200:
+        body = json.loads(response_stage3.content)
+
+        for index, git_tree in enumerate(body):
+            print(index)
+            print(git_tree)
